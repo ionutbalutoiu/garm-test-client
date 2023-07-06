@@ -127,7 +127,7 @@ func CreateRepoPool() {
 			WithBody(params.CreatePoolParams{
 				MaxRunners:     2,
 				MinIdleRunners: 0,
-				Flavor:         "default",
+				Flavor:         "garm",
 				Image:          "ubuntu:22.04",
 				OSType:         params.Linux,
 				OSArch:         params.Amd64,
