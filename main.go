@@ -10,6 +10,7 @@ import (
 
 	client "github.com/cloudbase/garm/client"
 	clientInstances "github.com/cloudbase/garm/client/instances"
+	clientOrganizations "github.com/cloudbase/garm/client/organizations"
 	clientRepositories "github.com/cloudbase/garm/client/repositories"
 	"github.com/cloudbase/garm/cmd/garm-cli/config"
 	"github.com/cloudbase/garm/params"
@@ -34,6 +35,9 @@ var (
 	repoInstanceName  string
 	repoWebhookSecret = os.Getenv("REPO_WEBHOOK_SECRET")
 
+	orgID            string
+	orgWebhookSecret = os.Getenv("ORG_WEBHOOK_SECRET")
+
 	instanceName string
 )
 
@@ -49,6 +53,7 @@ func printResponse(resp interface{}) {
 	log.Println(string(b))
 }
 
+// Repository
 func CreateRepo() {
 	listReposResp, err := cli.Repositories.ListRepos(
 		clientRepositories.NewListReposParams(),
@@ -239,6 +244,67 @@ func ListRepoInstances() {
 	printResponse(listRepoInstancesResp.Payload)
 }
 
+// Organizations
+func CreateOrg() {
+	listOrgsResp, err := cli.Organizations.ListOrgs(
+		clientOrganizations.NewListOrgsParams(),
+		authToken)
+	handleError(err)
+	if len(listOrgsResp.Payload) > 0 {
+		log.Println(">>> Org already exists, skipping create")
+		orgID = listOrgsResp.Payload[0].ID
+		return
+	}
+	log.Println(">>> Create org")
+	createOrgResp, err := cli.Organizations.CreateOrg(
+		clientOrganizations.NewCreateOrgParams().
+			WithBody(
+				params.CreateOrgParams{
+					Name:            orgName,
+					CredentialsName: credentialsName,
+					WebhookSecret:   orgWebhookSecret,
+				}),
+		authToken)
+	handleError(err)
+	printResponse(createOrgResp.Payload)
+	orgID = createOrgResp.Payload.ID
+}
+
+func ListOrgs() {
+	log.Println(">>> List orgs")
+	listOrgsResp, err := cli.Organizations.ListOrgs(
+		clientOrganizations.NewListOrgsParams(),
+		authToken)
+	handleError(err)
+	printResponse(listOrgsResp.Payload)
+	orgID = listOrgsResp.Payload[0].ID
+}
+
+func UpdateOrg() {
+	log.Println(">>> Update org")
+	updateOrgResp, err := cli.Organizations.UpdateOrg(
+		clientOrganizations.NewUpdateOrgParams().
+			WithOrgID(orgID).
+			WithBody(
+				params.UpdateEntityParams{
+					CredentialsName: fmt.Sprintf("%s-clone", credentialsName),
+				}),
+		authToken)
+	handleError(err)
+	printResponse(updateOrgResp.Payload)
+}
+
+func GetOrg() {
+	log.Println(">>> Get org")
+	getOrgResp, err := cli.Organizations.GetOrg(
+		clientOrganizations.NewGetOrgParams().
+			WithOrgID(orgID),
+		authToken)
+	handleError(err)
+	printResponse(getOrgResp.Payload)
+}
+
+// Instances
 func ListInstances() {
 	log.Println(">>> List instances")
 	listInstancesResp, err := cli.Instances.ListInstances(
@@ -303,6 +369,16 @@ func DeleteRepo() {
 	log.Printf("repo %s deleted", repoID)
 }
 
+func DeleteOrg() {
+	log.Println(">>> Delete org")
+	err := cli.Organizations.DeleteOrg(
+		clientOrganizations.NewDeleteOrgParams().
+			WithOrgID(orgID),
+		authToken)
+	handleError(err)
+	log.Printf("org %s deleted", orgID)
+}
+
 func main() {
 	//
 	// Load GARM client config
@@ -340,6 +416,14 @@ func main() {
 
 	ListRepoInstances()
 
+	//////////////////
+	// organizations //
+	//////////////////
+	CreateOrg()
+	ListOrgs()
+	UpdateOrg()
+	GetOrg()
+
 	///////////////
 	// instances //
 	///////////////
@@ -354,4 +438,5 @@ func main() {
 	WaitRepoPoolNoInstances()
 	DeleteRepoPool()
 	DeleteRepo()
+	DeleteOrg()
 }
