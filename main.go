@@ -36,6 +36,8 @@ var (
 	repoWebhookSecret = os.Getenv("REPO_WEBHOOK_SECRET")
 
 	orgID            string
+	orgPoolID        string
+	orgInstanceName  string
 	orgWebhookSecret = os.Getenv("ORG_WEBHOOK_SECRET")
 
 	instanceName string
@@ -304,6 +306,136 @@ func GetOrg() {
 	printResponse(getOrgResp.Payload)
 }
 
+func CreateOrgPool() {
+	listOrgPoolsResp, err := cli.Organizations.ListOrgPools(
+		clientOrganizations.NewListOrgPoolsParams().
+			WithOrgID(orgID),
+		authToken)
+	handleError(err)
+	if len(listOrgPoolsResp.Payload) > 0 {
+		log.Println(">>> Org pool already exists, skipping create")
+		orgPoolID = listOrgPoolsResp.Payload[0].ID
+		return
+	}
+	log.Println(">>> Create org pool")
+	createOrgPoolResp, err := cli.Organizations.CreateOrgPool(
+		clientOrganizations.NewCreateOrgPoolParams().
+			WithOrgID(orgID).
+			WithBody(params.CreatePoolParams{
+				MaxRunners:     2,
+				MinIdleRunners: 0,
+				Flavor:         "garm",
+				Image:          "ubuntu:22.04",
+				OSType:         params.Linux,
+				OSArch:         params.Amd64,
+				ProviderName:   "lxd_local",
+				Tags:           []string{"ubuntu", "simple-runner", "org-runner"},
+				Enabled:        true,
+			}),
+		authToken)
+	handleError(err)
+	printResponse(createOrgPoolResp.Payload)
+	orgPoolID = createOrgPoolResp.Payload.ID
+}
+
+func ListOrgPools() {
+	log.Println(">>> List org pools")
+	listOrgPoolsResp, err := cli.Organizations.ListOrgPools(
+		clientOrganizations.NewListOrgPoolsParams().
+			WithOrgID(orgID),
+		authToken)
+	handleError(err)
+	printResponse(listOrgPoolsResp.Payload)
+}
+
+func GetOrgPool() {
+	log.Println(">>> Get org pool")
+	getOrgPoolResp, err := cli.Organizations.GetOrgPool(
+		clientOrganizations.NewGetOrgPoolParams().
+			WithOrgID(orgID).
+			WithPoolID(orgPoolID),
+		authToken)
+	handleError(err)
+	printResponse(getOrgPoolResp.Payload)
+}
+
+func UpdateOrgPool() {
+	log.Println(">>> Update org pool")
+	var maxRunners uint = 5
+	var idleRunners uint = 1
+	updateOrgPoolResp, err := cli.Organizations.UpdateOrgPool(
+		clientOrganizations.NewUpdateOrgPoolParams().
+			WithOrgID(orgID).
+			WithPoolID(orgPoolID).
+			WithBody(params.UpdatePoolParams{
+				MinIdleRunners: &idleRunners,
+				MaxRunners:     &maxRunners,
+			}),
+		authToken)
+	handleError(err)
+	printResponse(updateOrgPoolResp.Payload)
+}
+
+func DisableOrgPool() {
+	enabled := false
+	_, err := cli.Organizations.UpdateOrgPool(
+		clientOrganizations.NewUpdateOrgPoolParams().
+			WithOrgID(orgID).
+			WithPoolID(orgPoolID).
+			WithBody(params.UpdatePoolParams{
+				Enabled: &enabled,
+			}),
+		authToken)
+	handleError(err)
+	log.Printf("org pool %s disabled", orgPoolID)
+}
+
+func WaitOrgPoolNoInstances() {
+	for {
+		log.Println(">>> Wait until org pool has no instances")
+		getOrgPoolResp, err := cli.Organizations.GetOrgPool(
+			clientOrganizations.NewGetOrgPoolParams().
+				WithOrgID(orgID).
+				WithPoolID(orgPoolID),
+			authToken)
+		handleError(err)
+		if len(getOrgPoolResp.Payload.Instances) == 0 {
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
+}
+
+func WaitOrgInstance() {
+	log.Println(">>> Wait until org instance is in running state")
+	for {
+		listOrgInstancesResp, err := cli.Organizations.ListOrgInstances(
+			clientOrganizations.NewListOrgInstancesParams().
+				WithOrgID(orgID),
+			authToken)
+		handleError(err)
+		if len(listOrgInstancesResp.Payload) > 0 {
+			instance := listOrgInstancesResp.Payload[0]
+			log.Printf("instance %s status: %s", instance.Name, instance.Status)
+			if instance.Status == common.InstanceRunning && instance.RunnerStatus == common.RunnerIdle {
+				orgInstanceName = instance.Name
+				break
+			}
+		}
+		time.Sleep(5 * time.Second)
+	}
+}
+
+func ListOrgInstances() {
+	log.Println(">>> List org instances")
+	listOrgInstancesResp, err := cli.Organizations.ListOrgInstances(
+		clientOrganizations.NewListOrgInstancesParams().
+			WithOrgID(orgID),
+		authToken)
+	handleError(err)
+	printResponse(listOrgInstancesResp.Payload)
+}
+
 // Instances
 func ListInstances() {
 	log.Println(">>> List instances")
@@ -357,6 +489,17 @@ func DeleteRepoPool() {
 		authToken)
 	handleError(err)
 	log.Printf("repo pool %s deleted", repoPoolID)
+}
+
+func DeleteOrgPool() {
+	log.Println(">>> Delete org pool")
+	err := cli.Organizations.DeleteOrgPool(
+		clientOrganizations.NewDeleteOrgPoolParams().
+			WithOrgID(orgID).
+			WithPoolID(orgPoolID),
+		authToken)
+	handleError(err)
+	log.Printf("org pool %s deleted", orgPoolID)
 }
 
 func DeleteRepo() {
@@ -424,6 +567,14 @@ func main() {
 	UpdateOrg()
 	GetOrg()
 
+	CreateOrgPool()
+	ListOrgPools()
+	GetOrgPool()
+	UpdateOrgPool()
+	WaitOrgInstance()
+
+	ListOrgInstances()
+
 	///////////////
 	// instances //
 	///////////////
@@ -434,9 +585,13 @@ func main() {
 	// Cleanup //
 	/////////////
 	DisableRepoPool()
+	DisableOrgPool()
 	DeleteInstance(repoInstanceName)
+	DeleteInstance(orgInstanceName)
 	WaitRepoPoolNoInstances()
+	WaitOrgPoolNoInstances()
 	DeleteRepoPool()
+	DeleteOrgPool()
 	DeleteRepo()
 	DeleteOrg()
 }
