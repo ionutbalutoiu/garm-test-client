@@ -11,6 +11,7 @@ import (
 	client "github.com/cloudbase/garm/client"
 	clientInstances "github.com/cloudbase/garm/client/instances"
 	clientOrganizations "github.com/cloudbase/garm/client/organizations"
+	clientPools "github.com/cloudbase/garm/client/pools"
 	clientRepositories "github.com/cloudbase/garm/client/repositories"
 	"github.com/cloudbase/garm/cmd/garm-cli/config"
 	"github.com/cloudbase/garm/params"
@@ -41,6 +42,7 @@ var (
 	orgWebhookSecret = os.Getenv("ORG_WEBHOOK_SECRET")
 
 	instanceName string
+	poolID       string
 )
 
 func handleError(err error) {
@@ -457,6 +459,27 @@ func GetInstance() {
 	printResponse(getInstanceResp.Payload)
 }
 
+// Pools
+func ListPools() {
+	log.Println(">>> List pools")
+	listPoolsResp, err := cli.Pools.ListPools(
+		clientPools.NewListPoolsParams(),
+		authToken)
+	handleError(err)
+	printResponse(listPoolsResp.Payload)
+	poolID = listPoolsResp.Payload[0].ID
+}
+
+func GetPool() {
+	log.Println(">>> Get pool")
+	getPoolResp, err := cli.Pools.GetPool(
+		clientPools.NewGetPoolParams().
+			WithPoolID(poolID),
+		authToken)
+	handleError(err)
+	printResponse(getPoolResp.Payload)
+}
+
 func DeleteInstance(name string) {
 	err := cli.Instances.DeleteInstance(
 		clientInstances.NewDeleteInstanceParams().
@@ -478,6 +501,17 @@ func DeleteInstance(name string) {
 	}
 	handleError(err)
 	log.Printf("instance %s deleted", name)
+}
+
+func DeletePool(poolID string) {
+	log.Println(">>> Delete pool")
+	err := cli.Pools.DeletePool(
+		clientPools.NewDeletePoolParams().
+			WithPoolID(poolID),
+		authToken)
+	handleError(err)
+	log.Printf("pool")
+
 }
 
 func DeleteRepoPool() {
@@ -581,6 +615,13 @@ func main() {
 	ListInstances()
 	GetInstance()
 
+	///////////////
+	// pools //
+	///////////////
+	ListPools()
+	GetPool()
+	
+
 	/////////////
 	// Cleanup //
 	/////////////
@@ -588,6 +629,8 @@ func main() {
 	DisableOrgPool()
 	DeleteInstance(repoInstanceName)
 	DeleteInstance(orgInstanceName)
+	DeletePool(repoPoolID)
+	DeletePool(orgPoolID)
 	WaitRepoPoolNoInstances()
 	WaitOrgPoolNoInstances()
 	DeleteRepoPool()
