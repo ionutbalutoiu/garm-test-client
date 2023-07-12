@@ -45,6 +45,9 @@ var (
 	poolID       string
 )
 
+// //////////////// //
+// helper functions //
+// ///////////////////
 func handleError(err error) {
 	if err != nil {
 		log.Fatalf("error encountered: %v", err)
@@ -57,147 +60,265 @@ func printResponse(resp interface{}) {
 	log.Println(string(b))
 }
 
-// Repository
-func CreateRepo() {
-	listReposResp, err := cli.Repositories.ListRepos(
+// ///////////////
+// Repositories //
+// ///////////////
+func createRepo(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWriter, repoParams params.CreateRepoParams) (*params.Repository, error) {
+	createRepoResponse, err := apiCli.Repositories.CreateRepo(
+		clientRepositories.NewCreateRepoParams().WithBody(repoParams),
+		apiAuthToken)
+	if err != nil {
+		return nil, err
+	}
+	return &createRepoResponse.Payload, nil
+}
+
+func listRepos(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWriter) (params.Repositories, error) {
+	listReposResponse, err := apiCli.Repositories.ListRepos(
 		clientRepositories.NewListReposParams(),
-		authToken)
+		apiAuthToken)
+	if err != nil {
+		return nil, err
+	}
+	return listReposResponse.Payload, nil
+}
+
+func updateRepo(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWriter, repoID string, repoParams params.UpdateEntityParams) (*params.Repository, error) {
+	updateRepoResponse, err := apiCli.Repositories.UpdateRepo(
+		clientRepositories.NewUpdateRepoParams().WithRepoID(repoID).WithBody(repoParams),
+		apiAuthToken)
+	if err != nil {
+		return nil, err
+	}
+	return &updateRepoResponse.Payload, nil
+}
+
+func getRepo(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWriter, repoID string) (*params.Repository, error) {
+	getRepoResponse, err := apiCli.Repositories.GetRepo(
+		clientRepositories.NewGetRepoParams().WithRepoID(repoID),
+		apiAuthToken)
+	if err != nil {
+		return nil, err
+	}
+	return &getRepoResponse.Payload, nil
+}
+
+func createRepoPool(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWriter, repoID string, poolParams params.CreatePoolParams) (*params.Pool, error) {
+	createRepoPoolResponse, err := apiCli.Repositories.CreateRepoPool(
+		clientRepositories.NewCreateRepoPoolParams().WithRepoID(repoID).WithBody(poolParams),
+		apiAuthToken)
+	if err != nil {
+		return nil, err
+	}
+	return &createRepoPoolResponse.Payload, nil
+}
+
+func listRepoPools(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWriter, repoID string) (params.Pools, error) {
+	listRepoPoolsResponse, err := apiCli.Repositories.ListRepoPools(
+		clientRepositories.NewListRepoPoolsParams().WithRepoID(repoID),
+		apiAuthToken)
+	if err != nil {
+		return nil, err
+	}
+	return listRepoPoolsResponse.Payload, nil
+}
+
+func getRepoPool(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWriter, repoID, poolID string) (*params.Pool, error) {
+	getRepoPoolResponse, err := apiCli.Repositories.GetRepoPool(
+		clientRepositories.NewGetRepoPoolParams().WithRepoID(repoID).WithPoolID(poolID),
+		apiAuthToken)
+	if err != nil {
+		return nil, err
+	}
+	return &getRepoPoolResponse.Payload, nil
+}
+
+func updateRepoPool(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWriter, repoID, poolID string, poolParams params.UpdatePoolParams) (*params.Pool, error) {
+	updateRepoPoolResponse, err := apiCli.Repositories.UpdateRepoPool(
+		clientRepositories.NewUpdateRepoPoolParams().WithRepoID(repoID).WithPoolID(poolID).WithBody(poolParams),
+		apiAuthToken)
+	if err != nil {
+		return nil, err
+	}
+	return &updateRepoPoolResponse.Payload, nil
+}
+
+func listRepoInstances(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWriter, repoID string) (params.Instances, error) {
+	listRepoInstancesResponse, err := apiCli.Repositories.ListRepoInstances(
+		clientRepositories.NewListRepoInstancesParams().WithRepoID(repoID),
+		apiAuthToken)
+	if err != nil {
+		return nil, err
+	}
+	return listRepoInstancesResponse.Payload, nil
+}
+
+func deleteRepo(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWriter, repoID string) error {
+	return apiCli.Repositories.DeleteRepo(
+		clientRepositories.NewDeleteRepoParams().WithRepoID(repoID),
+		apiAuthToken)
+}
+
+// ////////////////
+// Organizations //
+// ////////////////
+func createOrg(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWriter, orgParams params.CreateOrgParams) (*params.Organization, error) {
+	createOrgResponse, err := apiCli.Organizations.CreateOrg(
+		clientOrganizations.NewCreateOrgParams().WithBody(orgParams),
+		apiAuthToken)
+	if err != nil {
+		return nil, err
+	}
+	return &createOrgResponse.Payload, nil
+}
+
+func listOrgs(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWriter) (params.Organizations, error) {
+	listOrgsResponse, err := apiCli.Organizations.ListOrgs(
+		clientOrganizations.NewListOrgsParams(),
+		apiAuthToken)
+	if err != nil {
+		return nil, err
+	}
+	return listOrgsResponse.Payload, nil
+}
+
+// ////////
+// Pools //
+// ////////
+func listPools(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWriter) (params.Pools, error) {
+	listPoolsResponse, err := apiCli.Pools.ListPools(
+		clientPools.NewListPoolsParams(),
+		apiAuthToken)
+	if err != nil {
+		return nil, err
+	}
+	return listPoolsResponse.Payload, nil
+}
+
+func getPool(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWriter, poolID string) (*params.Pool, error) {
+	getPoolResponse, err := apiCli.Pools.GetPool(
+		clientPools.NewGetPoolParams().WithPoolID(poolID),
+		apiAuthToken)
+	if err != nil {
+		return nil, err
+	}
+	return &getPoolResponse.Payload, nil
+}
+
+func deletePool(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWriter, poolID string) error {
+	return apiCli.Pools.DeletePool(
+		clientPools.NewDeletePoolParams().WithPoolID(poolID),
+		apiAuthToken)
+}
+
+// /////////////////
+// Main functions //
+// /////////////////
+//
+// ///////////////
+// Repositories //
+// ///////////////
+func CreateRepo() {
+	repos, err := listRepos(cli, authToken)
 	handleError(err)
-	if len(listReposResp.Payload) > 0 {
+	if len(repos) > 0 {
 		log.Println(">>> Repo already exists, skipping create")
-		repoID = listReposResp.Payload[0].ID
+		repoID = repos[0].ID
 		return
 	}
 	log.Println(">>> Create repo")
-	createRepoResp, err := cli.Repositories.CreateRepo(
-		clientRepositories.NewCreateRepoParams().
-			WithBody(
-				params.CreateRepoParams{
-					Owner:           orgName,
-					Name:            repoName,
-					CredentialsName: credentialsName,
-					WebhookSecret:   repoWebhookSecret,
-				}),
-		authToken)
+	createParams := params.CreateRepoParams{
+		Owner:           orgName,
+		Name:            repoName,
+		CredentialsName: credentialsName,
+		WebhookSecret:   repoWebhookSecret,
+	}
+	repo, err := createRepo(cli, authToken, createParams)
 	handleError(err)
-	printResponse(createRepoResp.Payload)
-	repoID = createRepoResp.Payload.ID
+	printResponse(repo)
+	repoID = repo.ID
 }
 
 func ListRepos() {
 	log.Println(">>> List repos")
-	listReposResp, err := cli.Repositories.ListRepos(
-		clientRepositories.NewListReposParams(),
-		authToken)
+	repos, err := listRepos(cli, authToken)
 	handleError(err)
-	printResponse(listReposResp.Payload)
-	repoID = listReposResp.Payload[0].ID
+	printResponse(repos)
 }
 
 func UpdateRepo() {
 	log.Println(">>> Update repo")
-	updateRepoResp, err := cli.Repositories.UpdateRepo(
-		clientRepositories.NewUpdateRepoParams().
-			WithRepoID(repoID).
-			WithBody(
-				params.UpdateEntityParams{
-					CredentialsName: fmt.Sprintf("%s-clone", credentialsName),
-				}),
-		authToken)
+	updateParams := params.UpdateEntityParams{
+		CredentialsName: fmt.Sprintf("%s-clone", credentialsName),
+	}
+	repo, err := updateRepo(cli, authToken, repoID, updateParams)
 	handleError(err)
-	printResponse(updateRepoResp.Payload)
+	printResponse(repo)
 }
 
 func GetRepo() {
 	log.Println(">>> Get repo")
-	getRepoResp, err := cli.Repositories.GetRepo(
-		clientRepositories.NewGetRepoParams().
-			WithRepoID(repoID),
-		authToken)
+	repo, err := getRepo(cli, authToken, repoID)
 	handleError(err)
-	printResponse(getRepoResp.Payload)
+	printResponse(repo)
 }
 
 func CreateRepoPool() {
-	listRepoPoolsResp, err := cli.Repositories.ListRepoPools(
-		clientRepositories.NewListRepoPoolsParams().
-			WithRepoID(repoID),
-		authToken)
+	pools, err := listRepoPools(cli, authToken, repoID)
 	handleError(err)
-	if len(listRepoPoolsResp.Payload) > 0 {
+	if len(pools) > 0 {
 		log.Println(">>> Repo pool already exists, skipping create")
-		repoPoolID = listRepoPoolsResp.Payload[0].ID
+		repoPoolID = pools[0].ID
 		return
 	}
 	log.Println(">>> Create repo pool")
-	createRepoPoolResp, err := cli.Repositories.CreateRepoPool(
-		clientRepositories.NewCreateRepoPoolParams().
-			WithRepoID(repoID).
-			WithBody(params.CreatePoolParams{
-				MaxRunners:     2,
-				MinIdleRunners: 0,
-				Flavor:         "garm",
-				Image:          "ubuntu:22.04",
-				OSType:         params.Linux,
-				OSArch:         params.Amd64,
-				ProviderName:   "lxd_local",
-				Tags:           []string{"ubuntu", "simple-runner", "repo-runner"},
-				Enabled:        true,
-			}),
-		authToken)
+	poolParams := params.CreatePoolParams{
+		MaxRunners:     2,
+		MinIdleRunners: 0,
+		Flavor:         "garm",
+		Image:          "ubuntu:22.04",
+		OSType:         params.Linux,
+		OSArch:         params.Amd64,
+		ProviderName:   "lxd_local",
+		Tags:           []string{"ubuntu", "simple-runner"},
+		Enabled:        true,
+	}
+	repo, err := createRepoPool(cli, authToken, repoID, poolParams)
 	handleError(err)
-	printResponse(createRepoPoolResp.Payload)
-	repoPoolID = createRepoPoolResp.Payload.ID
+	printResponse(repo)
+	repoPoolID = repo.ID
 }
 
 func ListRepoPools() {
 	log.Println(">>> List repo pools")
-	listRepoPoolsResp, err := cli.Repositories.ListRepoPools(
-		clientRepositories.NewListRepoPoolsParams().
-			WithRepoID(repoID),
-		authToken)
+	pools, err := listRepoPools(cli, authToken, repoID)
 	handleError(err)
-	printResponse(listRepoPoolsResp.Payload)
+	printResponse(pools)
 }
 
 func GetRepoPool() {
 	log.Println(">>> Get repo pool")
-	getRepoPoolResp, err := cli.Repositories.GetRepoPool(
-		clientRepositories.NewGetRepoPoolParams().
-			WithRepoID(repoID).
-			WithPoolID(repoPoolID),
-		authToken)
+	pool, err := getRepoPool(cli, authToken, repoID, repoPoolID)
 	handleError(err)
-	printResponse(getRepoPoolResp.Payload)
+	printResponse(pool)
 }
 
 func UpdateRepoPool() {
 	log.Println(">>> Update repo pool")
 	var maxRunners uint = 5
 	var idleRunners uint = 1
-	updateRepoPoolResp, err := cli.Repositories.UpdateRepoPool(
-		clientRepositories.NewUpdateRepoPoolParams().
-			WithRepoID(repoID).
-			WithPoolID(repoPoolID).
-			WithBody(params.UpdatePoolParams{
-				MinIdleRunners: &idleRunners,
-				MaxRunners:     &maxRunners,
-			}),
-		authToken)
+	poolParams := params.UpdatePoolParams{
+		MinIdleRunners: &idleRunners,
+		MaxRunners:     &maxRunners,
+	}
+	pool, err := updateRepoPool(cli, authToken, repoID, repoPoolID, poolParams)
 	handleError(err)
-	printResponse(updateRepoPoolResp.Payload)
+	printResponse(pool)
 }
 
 func DisableRepoPool() {
 	enabled := false
-	_, err := cli.Repositories.UpdateRepoPool(
-		clientRepositories.NewUpdateRepoPoolParams().
-			WithRepoID(repoID).
-			WithPoolID(repoPoolID).
-			WithBody(params.UpdatePoolParams{
-				Enabled: &enabled,
-			}),
-		authToken)
+	_, err := updateRepoPool(cli, authToken, repoID, repoPoolID, params.UpdatePoolParams{Enabled: &enabled})
 	handleError(err)
 	log.Printf("repo pool %s disabled", repoPoolID)
 }
@@ -205,13 +326,9 @@ func DisableRepoPool() {
 func WaitRepoPoolNoInstances() {
 	for {
 		log.Println(">>> Wait until repo pool has no instances")
-		getRepoPoolResp, err := cli.Repositories.GetRepoPool(
-			clientRepositories.NewGetRepoPoolParams().
-				WithRepoID(repoID).
-				WithPoolID(repoPoolID),
-			authToken)
+		pool, err := getRepoPool(cli, authToken, repoID, repoPoolID)
 		handleError(err)
-		if len(getRepoPoolResp.Payload.Instances) == 0 {
+		if len(pool.Instances) == 0 {
 			break
 		}
 		time.Sleep(5 * time.Second)
@@ -221,13 +338,10 @@ func WaitRepoPoolNoInstances() {
 func WaitRepoInstance() {
 	log.Println(">>> Wait until repo instance is in running state")
 	for {
-		listRepoInstancesResp, err := cli.Repositories.ListRepoInstances(
-			clientRepositories.NewListRepoInstancesParams().
-				WithRepoID(repoID),
-			authToken)
+		instances, err := listRepoInstances(cli, authToken, repoID)
 		handleError(err)
-		if len(listRepoInstancesResp.Payload) > 0 {
-			instance := listRepoInstancesResp.Payload[0]
+		if len(instances) > 0 {
+			instance := instances[0]
 			log.Printf("instance %s status: %s", instance.Name, instance.Status)
 			if instance.Status == common.InstanceRunning && instance.RunnerStatus == common.RunnerIdle {
 				repoInstanceName = instance.Name
@@ -240,50 +354,61 @@ func WaitRepoInstance() {
 
 func ListRepoInstances() {
 	log.Println(">>> List repo instances")
-	listRepoInstancesResp, err := cli.Repositories.ListRepoInstances(
-		clientRepositories.NewListRepoInstancesParams().
-			WithRepoID(repoID),
-		authToken)
+	instances, err := listRepoInstances(cli, authToken, repoID)
 	handleError(err)
-	printResponse(listRepoInstancesResp.Payload)
+	printResponse(instances)
 }
 
-// Organizations
-func CreateOrg() {
-	listOrgsResp, err := cli.Organizations.ListOrgs(
-		clientOrganizations.NewListOrgsParams(),
+func DeleteRepo() {
+	log.Println(">>> Delete repo")
+	err := deleteRepo(cli, authToken, repoID)
+	handleError(err)
+	log.Printf("repo %s deleted", repoID)
+}
+
+// TODO only
+func DeleteRepoPool() {
+	log.Println(">>> Delete repo pool")
+	err := cli.Repositories.DeleteRepoPool(
+		clientRepositories.NewDeleteRepoPoolParams().
+			WithRepoID(repoID).
+			WithPoolID(repoPoolID),
 		authToken)
 	handleError(err)
-	if len(listOrgsResp.Payload) > 0 {
+	log.Printf("repo pool %s deleted", repoPoolID)
+}
+
+// ////////////////
+// Organizations //
+// ////////////////
+func CreateOrg() {
+	orgs, err := listOrgs(cli, authToken)
+	handleError(err)
+	if len(orgs) > 0 {
 		log.Println(">>> Org already exists, skipping create")
-		orgID = listOrgsResp.Payload[0].ID
+		orgID = orgs[0].ID
 		return
 	}
 	log.Println(">>> Create org")
-	createOrgResp, err := cli.Organizations.CreateOrg(
-		clientOrganizations.NewCreateOrgParams().
-			WithBody(
-				params.CreateOrgParams{
-					Name:            orgName,
-					CredentialsName: credentialsName,
-					WebhookSecret:   orgWebhookSecret,
-				}),
-		authToken)
+	orgParams := params.CreateOrgParams{
+		Name:            orgName,
+		CredentialsName: credentialsName,
+		WebhookSecret:   orgWebhookSecret,
+	}
+	org, err := createOrg(cli, authToken, orgParams)
 	handleError(err)
-	printResponse(createOrgResp.Payload)
-	orgID = createOrgResp.Payload.ID
+	printResponse(org)
+	orgID = org.ID
 }
 
 func ListOrgs() {
 	log.Println(">>> List orgs")
-	listOrgsResp, err := cli.Organizations.ListOrgs(
-		clientOrganizations.NewListOrgsParams(),
-		authToken)
+	orgs, err := listOrgs(cli, authToken)
 	handleError(err)
-	printResponse(listOrgsResp.Payload)
-	orgID = listOrgsResp.Payload[0].ID
+	printResponse(orgs)
 }
 
+// TODO below
 func UpdateOrg() {
 	log.Println(">>> Update org")
 	updateOrgResp, err := cli.Organizations.UpdateOrg(
@@ -438,7 +563,30 @@ func ListOrgInstances() {
 	printResponse(listOrgInstancesResp.Payload)
 }
 
-// Instances
+func DeleteOrg() {
+	log.Println(">>> Delete org")
+	err := cli.Organizations.DeleteOrg(
+		clientOrganizations.NewDeleteOrgParams().
+			WithOrgID(orgID),
+		authToken)
+	handleError(err)
+	log.Printf("org %s deleted", orgID)
+}
+
+func DeleteOrgPool() {
+	log.Println(">>> Delete org pool")
+	err := cli.Organizations.DeleteOrgPool(
+		clientOrganizations.NewDeleteOrgPoolParams().
+			WithOrgID(orgID).
+			WithPoolID(orgPoolID),
+		authToken)
+	handleError(err)
+	log.Printf("org pool %s deleted", orgPoolID)
+}
+
+// ////////////
+// Instances //
+// ////////////
 func ListInstances() {
 	log.Println(">>> List instances")
 	listInstancesResp, err := cli.Instances.ListInstances(
@@ -457,27 +605,6 @@ func GetInstance() {
 		authToken)
 	handleError(err)
 	printResponse(getInstanceResp.Payload)
-}
-
-// Pools
-func ListPools() {
-	log.Println(">>> List pools")
-	listPoolsResp, err := cli.Pools.ListPools(
-		clientPools.NewListPoolsParams(),
-		authToken)
-	handleError(err)
-	printResponse(listPoolsResp.Payload)
-	poolID = listPoolsResp.Payload[0].ID
-}
-
-func GetPool() {
-	log.Println(">>> Get pool")
-	getPoolResp, err := cli.Pools.GetPool(
-		clientPools.NewGetPoolParams().
-			WithPoolID(poolID),
-		authToken)
-	handleError(err)
-	printResponse(getPoolResp.Payload)
 }
 
 func DeleteInstance(name string) {
@@ -503,57 +630,56 @@ func DeleteInstance(name string) {
 	log.Printf("instance %s deleted", name)
 }
 
-func DeletePool(poolID string) {
+// ////////
+// Pools //
+// ////////
+func CreatePool() {
+	pools, err := listPools(cli, authToken)
+	handleError(err)
+	for _, pool := range pools {
+		if pool.Image == "ubuntu:20.04" {
+			// this is the extra pool to be deleted, later, via [DELETE] pools dedicated API.
+			poolID = pool.ID
+			return
+		}
+	}
+	log.Println(">>> Create pool")
+	poolParams := params.CreatePoolParams{
+		MaxRunners:     2,
+		MinIdleRunners: 0,
+		Flavor:         "garm",
+		Image:          "ubuntu:20.04",
+		OSType:         params.Linux,
+		OSArch:         params.Amd64,
+		ProviderName:   "lxd_local",
+		Tags:           []string{"ubuntu", "simple-runner"},
+		Enabled:        true,
+	}
+	pool, err := createRepoPool(cli, authToken, repoID, poolParams)
+	handleError(err)
+	printResponse(pool)
+	poolID = pool.ID
+}
+
+func ListPools() {
+	log.Println(">>> List pools")
+	pools, err := listPools(cli, authToken)
+	handleError(err)
+	printResponse(pools)
+}
+
+func GetPool() {
+	log.Println(">>> Get pool")
+	pool, err := getPool(cli, authToken, poolID)
+	handleError(err)
+	printResponse(pool)
+}
+
+func DeletePool() {
 	log.Println(">>> Delete pool")
-	err := cli.Pools.DeletePool(
-		clientPools.NewDeletePoolParams().
-			WithPoolID(poolID),
-		authToken)
+	err := deletePool(cli, authToken, poolID)
 	handleError(err)
-	log.Printf("pool")
-
-}
-
-func DeleteRepoPool() {
-	log.Println(">>> Delete repo pool")
-	err := cli.Repositories.DeleteRepoPool(
-		clientRepositories.NewDeleteRepoPoolParams().
-			WithRepoID(repoID).
-			WithPoolID(repoPoolID),
-		authToken)
-	handleError(err)
-	log.Printf("repo pool %s deleted", repoPoolID)
-}
-
-func DeleteOrgPool() {
-	log.Println(">>> Delete org pool")
-	err := cli.Organizations.DeleteOrgPool(
-		clientOrganizations.NewDeleteOrgPoolParams().
-			WithOrgID(orgID).
-			WithPoolID(orgPoolID),
-		authToken)
-	handleError(err)
-	log.Printf("org pool %s deleted", orgPoolID)
-}
-
-func DeleteRepo() {
-	log.Println(">>> Delete repo")
-	err := cli.Repositories.DeleteRepo(
-		clientRepositories.NewDeleteRepoParams().
-			WithRepoID(repoID),
-		authToken)
-	handleError(err)
-	log.Printf("repo %s deleted", repoID)
-}
-
-func DeleteOrg() {
-	log.Println(">>> Delete org")
-	err := cli.Organizations.DeleteOrg(
-		clientOrganizations.NewDeleteOrgParams().
-			WithOrgID(orgID),
-		authToken)
-	handleError(err)
-	log.Printf("org %s deleted", orgID)
+	log.Printf("pool %s deleted", poolID)
 }
 
 func main() {
@@ -589,9 +715,6 @@ func main() {
 	ListRepoPools()
 	GetRepoPool()
 	UpdateRepoPool()
-	WaitRepoInstance()
-
-	ListRepoInstances()
 
 	//////////////////
 	// organizations //
@@ -605,36 +728,42 @@ func main() {
 	ListOrgPools()
 	GetOrgPool()
 	UpdateOrgPool()
-	WaitOrgInstance()
-
-	ListOrgInstances()
 
 	///////////////
 	// instances //
 	///////////////
+	WaitRepoInstance()
+	ListRepoInstances()
+
+	WaitOrgInstance()
+	ListOrgInstances()
+
 	ListInstances()
 	GetInstance()
 
 	///////////////
 	// pools //
 	///////////////
+	CreatePool()
 	ListPools()
 	GetPool()
-	
 
 	/////////////
 	// Cleanup //
 	/////////////
 	DisableRepoPool()
 	DisableOrgPool()
+
 	DeleteInstance(repoInstanceName)
 	DeleteInstance(orgInstanceName)
-	DeletePool(repoPoolID)
-	DeletePool(orgPoolID)
+
 	WaitRepoPoolNoInstances()
 	WaitOrgPoolNoInstances()
+
 	DeleteRepoPool()
 	DeleteOrgPool()
+	DeletePool()
+
 	DeleteRepo()
 	DeleteOrg()
 }
