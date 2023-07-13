@@ -9,9 +9,13 @@ import (
 	"time"
 
 	client "github.com/cloudbase/garm/client"
+	clientCredentials "github.com/cloudbase/garm/client/credentials"
+	clientFirstRun "github.com/cloudbase/garm/client/first_run"
 	clientInstances "github.com/cloudbase/garm/client/instances"
+	clientLogin "github.com/cloudbase/garm/client/login"
 	clientOrganizations "github.com/cloudbase/garm/client/organizations"
 	clientPools "github.com/cloudbase/garm/client/pools"
+	clientProviders "github.com/cloudbase/garm/client/providers"
 	clientRepositories "github.com/cloudbase/garm/client/repositories"
 	"github.com/cloudbase/garm/cmd/garm-cli/config"
 	"github.com/cloudbase/garm/params"
@@ -27,6 +31,7 @@ const (
 
 var (
 	cli       *client.GarmAPI
+	cfg       config.Config
 	authToken runtime.ClientAuthInfoWriter
 
 	credentialsName = os.Getenv("CREDENTIALS_NAME")
@@ -41,7 +46,14 @@ var (
 	orgInstanceName  string
 	orgWebhookSecret = os.Getenv("ORG_WEBHOOK_SECRET")
 
-	poolID       string
+	username = os.Getenv("GARM_USERNAME")
+	password = os.Getenv("GARM_PASSWORD")
+	fullName = os.Getenv("GARM_FULLNAME")
+	email    = os.Getenv("GARM_EMAIL")
+	name     = os.Getenv("GARM_NAME")
+	baseURL  = os.Getenv("GARM_BASE_URL")
+
+	poolID string
 )
 
 // //////////////// //
@@ -57,6 +69,52 @@ func printResponse(resp interface{}) {
 	b, err := json.MarshalIndent(resp, "", "  ")
 	handleError(err)
 	log.Println(string(b))
+}
+
+// ///////////
+// Garm Init /
+// ///////////
+func firstRun(apiCli *client.GarmAPI, newUser params.NewUserParams) (params.User, error) {
+	firstRunResponse, err := apiCli.FirstRun.FirstRun(
+		clientFirstRun.NewFirstRunParams().WithBody(newUser),
+		authToken)
+	if err != nil {
+		return params.User{}, err
+	}
+	return firstRunResponse.Payload, nil
+}
+
+func login(apiCli *client.GarmAPI, params params.PasswordLoginParams) (string, error) {
+	loginResponse, err := apiCli.Login.Login(
+		clientLogin.NewLoginParams().WithBody(params),
+		authToken)
+	if err != nil {
+		return "", err
+	}
+	return loginResponse.Payload.Token, nil
+}
+
+// ////////////////////////////
+// Credentials and Providers //
+// ////////////////////////////
+func listCredentials(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWriter) (params.Credentials, error) {
+	listCredentialsResponse, err := apiCli.Credentials.ListCredentials(
+		clientCredentials.NewListCredentialsParams(),
+		apiAuthToken)
+	if err != nil {
+		return nil, err
+	}
+	return listCredentialsResponse.Payload, nil
+}
+
+func listProviders(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWriter) (params.Providers, error) {
+	listProvidersResponse, err := apiCli.Providers.ListProviders(
+		clientProviders.NewListProvidersParams(),
+		apiAuthToken)
+	if err != nil {
+		return nil, err
+	}
+	return listProvidersResponse.Payload, nil
 }
 
 // ///////////////
@@ -351,6 +409,70 @@ func deletePool(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWrite
 // Main functions //
 // /////////////////
 //
+// /////////////
+// Garm Init //
+// /////////////
+func Login() {
+	log.Println(">>> Login")
+	loginParams := params.PasswordLoginParams{
+		Username: username,
+		Password: password,
+	}
+	token, err := login(cli, loginParams)
+	handleError(err)
+	printResponse(token)
+	authToken = openapiRuntimeClient.BearerToken(token)
+	cfg.Managers = []config.Manager{
+		{
+			Name:    name,
+			BaseURL: baseURL,
+			Token:   token,
+		},
+	}
+	cfg.ActiveManager = name
+	err = cfg.SaveConfig()
+	handleError(err)
+}
+
+func FirstRun() {
+	existingCfg, err := config.LoadConfig()
+	handleError(err)
+	if existingCfg != nil {
+		if existingCfg.HasManager(name) {
+			log.Println(">>> Already initialized")
+			return
+		}
+	}
+
+	log.Println(">>> First run")
+	newUser := params.NewUserParams{
+		Username: username,
+		Password: password,
+		FullName: fullName,
+		Email:    email,
+	}
+	user, err := firstRun(cli, newUser)
+	handleError(err)
+	printResponse(user)
+}
+
+// ////////////////////////////
+// Credentials and Providers //
+// ////////////////////////////
+func ListCredentials() {
+	log.Println(">>> List credentials")
+	credentials, err := listCredentials(cli, authToken)
+	handleError(err)
+	printResponse(credentials)
+}
+
+func ListProviders() {
+	log.Println(">>> List providers")
+	providers, err := listProviders(cli, authToken)
+	handleError(err)
+	printResponse(providers)
+}
+
 // ///////////////
 // Repositories //
 // ///////////////
@@ -684,7 +806,7 @@ func GetInstance() {
 }
 
 func DeleteInstance(name string) {
-	err:= deleteInstance(cli, authToken, name)
+	err := deleteInstance(cli, authToken, name)
 	for {
 		log.Printf(">>> Wait until instance %s is deleted", name)
 		instances, err := listInstances(cli, authToken)
@@ -739,7 +861,7 @@ func ListPools() {
 	printResponse(pools)
 }
 
-func UpdatePool(){
+func UpdatePool() {
 	log.Println(">>> Update pool")
 	var maxRunners uint = 5
 	var idleRunners uint = 0
@@ -774,25 +896,30 @@ func ListPoolInstances() {
 }
 
 func main() {
-	//
-	// Load GARM client config
-	//
-	cfg, err := config.LoadConfig()
+	//////////////////
+	// initialize cli /
+	//////////////////
+	garmUrl, err := url.Parse(baseURL)
 	handleError(err)
-	garmUrl, err := url.Parse(cfg.Managers[0].BaseURL)
-	handleError(err)
-	authToken = openapiRuntimeClient.BearerToken(cfg.Managers[0].Token)
 	apiPath, err := url.JoinPath(garmUrl.Path, client.DefaultBasePath)
 	handleError(err)
-
-	//
-	// Create GARM client
-	//
 	transportCfg := client.DefaultTransportConfig().
 		WithHost(garmUrl.Host).
 		WithBasePath(apiPath).
 		WithSchemes([]string{garmUrl.Scheme})
 	cli = client.NewHTTPClientWithConfig(nil, transportCfg)
+
+	//////////////////
+	// garm init //
+	//////////////////
+	FirstRun()
+	Login()
+
+	// ////////////////////////////
+	// credentials and providers //
+	// ////////////////////////////
+	ListCredentials()
+	ListProviders()
 
 	//////////////////
 	// repositories //
