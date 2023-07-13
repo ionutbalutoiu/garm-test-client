@@ -321,6 +321,26 @@ func getPool(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWriter, 
 	return &getPoolResponse.Payload, nil
 }
 
+func updatePool(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWriter, poolID string, poolParams params.UpdatePoolParams) (*params.Pool, error) {
+	updatePoolResponse, err := apiCli.Pools.UpdatePool(
+		clientPools.NewUpdatePoolParams().WithPoolID(poolID).WithBody(poolParams),
+		apiAuthToken)
+	if err != nil {
+		return nil, err
+	}
+	return &updatePoolResponse.Payload, nil
+}
+
+func listPoolInstances(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWriter, poolID string) (params.Instances, error) {
+	listPoolInstancesResponse, err := apiCli.Instances.ListPoolInstances(
+		clientInstances.NewListPoolInstancesParams().WithPoolID(poolID),
+		apiAuthToken)
+	if err != nil {
+		return nil, err
+	}
+	return listPoolInstancesResponse.Payload, nil
+}
+
 func deletePool(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWriter, poolID string) error {
 	return apiCli.Pools.DeletePool(
 		clientPools.NewDeletePoolParams().WithPoolID(poolID),
@@ -719,6 +739,19 @@ func ListPools() {
 	printResponse(pools)
 }
 
+func UpdatePool(){
+	log.Println(">>> Update pool")
+	var maxRunners uint = 5
+	var idleRunners uint = 0
+	poolParams := params.UpdatePoolParams{
+		MinIdleRunners: &idleRunners,
+		MaxRunners:     &maxRunners,
+	}
+	pool, err := updatePool(cli, authToken, poolID, poolParams)
+	handleError(err)
+	printResponse(pool)
+}
+
 func GetPool() {
 	log.Println(">>> Get pool")
 	pool, err := getPool(cli, authToken, poolID)
@@ -731,6 +764,13 @@ func DeletePool() {
 	err := deletePool(cli, authToken, poolID)
 	handleError(err)
 	log.Printf("pool %s deleted", poolID)
+}
+
+func ListPoolInstances() {
+	log.Println(">>> List pool instances")
+	instances, err := listPoolInstances(cli, authToken, repoPoolID)
+	handleError(err)
+	printResponse(instances)
 }
 
 func main() {
@@ -797,7 +837,9 @@ func main() {
 	///////////////
 	CreatePool()
 	ListPools()
+	UpdatePool()
 	GetPool()
+	ListPoolInstances()
 
 	/////////////
 	// Cleanup //
