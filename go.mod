@@ -2,10 +2,8 @@ module garm-test-client
 
 go 1.20
 
-replace github.com/cloudbase/garm => /Users/ionutbalutoiu/Work/garm/garm
-
 require (
-	github.com/cloudbase/garm v0.1.2
+	github.com/cloudbase/garm v0.1.1-0.20230717131646-8089244c9c73
 	github.com/go-openapi/runtime v0.26.0
 )
 
