@@ -135,14 +135,14 @@ func listJobs(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWriter)
 // //////////////////
 // / Metrics Token //
 // //////////////////
-func metricsToken(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWriter) (string, error) {
-	metricsTokenResponse, err := apiCli.MetricsToken.MetricsToken(
-		clientMetricsToken.NewMetricsTokenParams(),
+func getMetricsToken(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWriter) (string, error) {
+	getMetricsTokenResponse, err := apiCli.MetricsToken.GetMetricsToken(
+		clientMetricsToken.NewGetMetricsTokenParams(),
 		apiAuthToken)
 	if err != nil {
 		return "", err
 	}
-	return metricsTokenResponse.Payload.Token, nil
+	return getMetricsTokenResponse.Payload.Token, nil
 }
 
 // ///////////////
@@ -514,11 +514,11 @@ func ListJobs() {
 // //////////////////
 // / Metrics Token //
 // //////////////////
-func MetricsToken() {
-	log.Println(">>> Metrics token")
-	metricsToken, err := metricsToken(cli, authToken)
+func GetMetricsToken() {
+	log.Println(">>> Get metrics token")
+	token, err := getMetricsToken(cli, authToken)
 	handleError(err)
-	printResponse(metricsToken)
+	printResponse(token)
 }
 
 // ///////////////
@@ -977,7 +977,7 @@ func main() {
 	////////////////////
 	/// metrics token //
 	////////////////////
-	MetricsToken()
+	GetMetricsToken()
 
 	//////////////////
 	// repositories //
