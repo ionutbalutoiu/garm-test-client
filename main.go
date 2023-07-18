@@ -12,7 +12,9 @@ import (
 	clientCredentials "github.com/cloudbase/garm/client/credentials"
 	clientFirstRun "github.com/cloudbase/garm/client/first_run"
 	clientInstances "github.com/cloudbase/garm/client/instances"
+	clientJobs "github.com/cloudbase/garm/client/jobs"
 	clientLogin "github.com/cloudbase/garm/client/login"
+	clientMetricsToken "github.com/cloudbase/garm/client/metrics_token"
 	clientOrganizations "github.com/cloudbase/garm/client/organizations"
 	clientPools "github.com/cloudbase/garm/client/pools"
 	clientProviders "github.com/cloudbase/garm/client/providers"
@@ -115,6 +117,32 @@ func listProviders(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWr
 		return nil, err
 	}
 	return listProvidersResponse.Payload, nil
+}
+
+// ////////
+// Jobs //
+// ////////
+func listJobs(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWriter) (params.Jobs, error) {
+	listJobsResponse, err := apiCli.Jobs.ListJobs(
+		clientJobs.NewListJobsParams(),
+		apiAuthToken)
+	if err != nil {
+		return nil, err
+	}
+	return listJobsResponse.Payload, nil
+}
+
+// //////////////////
+// / Metrics Token //
+// //////////////////
+func metricsToken(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWriter) (string, error) {
+	metricsTokenResponse, err := apiCli.MetricsToken.MetricsToken(
+		clientMetricsToken.NewMetricsTokenParams(),
+		apiAuthToken)
+	if err != nil {
+		return "", err
+	}
+	return metricsTokenResponse.Payload.Token, nil
 }
 
 // ///////////////
@@ -471,6 +499,26 @@ func ListProviders() {
 	providers, err := listProviders(cli, authToken)
 	handleError(err)
 	printResponse(providers)
+}
+
+// ////////
+// Jobs //
+// ////////
+func ListJobs() {
+	log.Println(">>> List jobs")
+	jobs, err := listJobs(cli, authToken)
+	handleError(err)
+	printResponse(jobs)
+}
+
+// //////////////////
+// / Metrics Token //
+// //////////////////
+func MetricsToken() {
+	log.Println(">>> Metrics token")
+	metricsToken, err := metricsToken(cli, authToken)
+	handleError(err)
+	printResponse(metricsToken)
 }
 
 // ///////////////
@@ -920,6 +968,16 @@ func main() {
 	// ////////////////////////////
 	ListCredentials()
 	ListProviders()
+
+	//////////
+	// jobs //
+	//////////
+	ListJobs()
+
+	////////////////////
+	/// metrics token //
+	////////////////////
+	MetricsToken()
 
 	//////////////////
 	// repositories //
