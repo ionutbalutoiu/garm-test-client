@@ -10,6 +10,7 @@ import (
 
 	client "github.com/cloudbase/garm/client"
 	clientCredentials "github.com/cloudbase/garm/client/credentials"
+	clientEnterprises "github.com/cloudbase/garm/client/enterprises"
 	clientFirstRun "github.com/cloudbase/garm/client/first_run"
 	clientInstances "github.com/cloudbase/garm/client/instances"
 	clientJobs "github.com/cloudbase/garm/client/jobs"
@@ -27,8 +28,9 @@ import (
 )
 
 const (
-	orgName  = "test-garm-org"
-	repoName = "test-garm-repo"
+	orgName        = "test-garm-org"
+	repoName       = "test-garm-repo"
+	enterpriseName = "cloudbase-solutions"
 )
 
 var (
@@ -47,6 +49,11 @@ var (
 	orgPoolID        string
 	orgInstanceName  string
 	orgWebhookSecret = os.Getenv("ORG_WEBHOOK_SECRET")
+
+	enterpriseID            string
+	enterprisePoolID        string
+	enterpriseInstanceName  string
+	enterpriseWebhookSecret = os.Getenv("ENTERPRISE_WEBHOOK_SECRET")
 
 	username = os.Getenv("GARM_USERNAME")
 	password = os.Getenv("GARM_PASSWORD")
@@ -430,6 +437,111 @@ func listPoolInstances(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthIn
 func deletePool(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWriter, poolID string) error {
 	return apiCli.Pools.DeletePool(
 		clientPools.NewDeletePoolParams().WithPoolID(poolID),
+		apiAuthToken)
+}
+
+// ///////////////
+// Enterprises //
+// ///////////////
+func createEnterprise(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWriter, enterpriseParams params.CreateEnterpriseParams) (*params.Enterprise, error) {
+	createEnterpriseResponse, err := apiCli.Enterprises.CreateEnterprise(
+		clientEnterprises.NewCreateEnterpriseParams().WithBody(enterpriseParams),
+		apiAuthToken)
+	if err != nil {
+		return nil, err
+	}
+	return &createEnterpriseResponse.Payload, nil
+}
+
+func listEnterprises(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWriter) (params.Enterprises, error) {
+	listEnterprisesResponse, err := apiCli.Enterprises.ListEnterprises(
+		clientEnterprises.NewListEnterprisesParams(),
+		apiAuthToken)
+	if err != nil {
+		return nil, err
+	}
+	return listEnterprisesResponse.Payload, nil
+}
+
+func updateEnterprise(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWriter, enterpriseID string, enterpriseParams params.UpdateEntityParams) (*params.Enterprise, error) {
+	updateEnterpriseResponse, err := apiCli.Enterprises.UpdateEnterprise(
+		clientEnterprises.NewUpdateEnterpriseParams().WithEnterpriseID(enterpriseID).WithBody(enterpriseParams),
+		apiAuthToken)
+	if err != nil {
+		return nil, err
+	}
+	return &updateEnterpriseResponse.Payload, nil
+}
+
+func getEnterprise(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWriter, enterpriseID string) (*params.Enterprise, error) {
+	getEnterpriseResponse, err := apiCli.Enterprises.GetEnterprise(
+		clientEnterprises.NewGetEnterpriseParams().WithEnterpriseID(enterpriseID),
+		apiAuthToken)
+	if err != nil {
+		return nil, err
+	}
+	return &getEnterpriseResponse.Payload, nil
+}
+
+func createEnterprisePool(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWriter, enterpriseID string, poolParams params.CreatePoolParams) (*params.Pool, error) {
+	createEnterprisePoolResponse, err := apiCli.Enterprises.CreateEnterprisePool(
+		clientEnterprises.NewCreateEnterprisePoolParams().WithEnterpriseID(enterpriseID).WithBody(poolParams),
+		apiAuthToken)
+	if err != nil {
+		return nil, err
+	}
+	return &createEnterprisePoolResponse.Payload, nil
+}
+
+func listEnterprisesPools(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWriter, enterpriseID string) (params.Pools, error) {
+	listEnterprisesPoolsResponse, err := apiCli.Enterprises.ListEnterprisePools(
+		clientEnterprises.NewListEnterprisePoolsParams().WithEnterpriseID(enterpriseID),
+		apiAuthToken)
+	if err != nil {
+		return nil, err
+	}
+	return listEnterprisesPoolsResponse.Payload, nil
+}
+
+func getEnterprisePool(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWriter, enterpriseID, poolID string) (*params.Pool, error) {
+	getEnterprisePoolResponse, err := apiCli.Enterprises.GetEnterprisePool(
+		clientEnterprises.NewGetEnterprisePoolParams().WithEnterpriseID(enterpriseID).WithPoolID(poolID),
+		apiAuthToken)
+	if err != nil {
+		return nil, err
+	}
+	return &getEnterprisePoolResponse.Payload, nil
+}
+
+func updateEnterprisePool(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWriter, enterpriseID, poolID string, poolParams params.UpdatePoolParams) (*params.Pool, error) {
+	updateEnterprisePoolResponse, err := apiCli.Enterprises.UpdateEnterprisePool(
+		clientEnterprises.NewUpdateEnterprisePoolParams().WithEnterpriseID(enterpriseID).WithPoolID(poolID).WithBody(poolParams),
+		apiAuthToken)
+	if err != nil {
+		return nil, err
+	}
+	return &updateEnterprisePoolResponse.Payload, nil
+}
+
+func listEnterpriseInstances(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWriter, enterpriseID string) (params.Instances, error) {
+	listEnterpriseInstancesResponse, err := apiCli.Enterprises.ListEnterpriseInstances(
+		clientEnterprises.NewListEnterpriseInstancesParams().WithEnterpriseID(enterpriseID),
+		apiAuthToken)
+	if err != nil {
+		return nil, err
+	}
+	return listEnterpriseInstancesResponse.Payload, nil
+}
+
+func deleteEnterprise(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWriter, enterpriseID string) error {
+	return apiCli.Enterprises.DeleteEnterprise(
+		clientEnterprises.NewDeleteEnterpriseParams().WithEnterpriseID(enterpriseID),
+		apiAuthToken)
+}
+
+func deleteEnterprisePool(apiCli *client.GarmAPI, apiAuthToken runtime.ClientAuthInfoWriter, enterpriseID, poolID string) error {
+	return apiCli.Enterprises.DeleteEnterprisePool(
+		clientEnterprises.NewDeleteEnterprisePoolParams().WithEnterpriseID(enterpriseID).WithPoolID(poolID),
 		apiAuthToken)
 }
 
@@ -943,6 +1055,163 @@ func ListPoolInstances() {
 	printResponse(instances)
 }
 
+// ///////////////
+// Enterprises //
+// ///////////////
+func CreateEnterprise() {
+	enterprises, err := listEnterprises(cli, authToken)
+	handleError(err)
+	if len(enterprises) > 0 {
+		log.Println(">>> Enterprise already exists, skipping create")
+		enterpriseID = enterprises[0].ID
+		return
+	}
+	log.Println(">>> Create enterprise")
+	createParams := params.CreateEnterpriseParams{
+		Name:            enterpriseName,
+		CredentialsName: credentialsName,
+		WebhookSecret:   enterpriseWebhookSecret,
+	}
+	enterprise, err := createEnterprise(cli, authToken, createParams)
+	handleError(err)
+	printResponse(enterprise)
+	enterpriseID = enterprise.ID
+}
+
+func ListEnterprises() {
+	log.Println(">>> List enterprises")
+	enterprises, err := listEnterprises(cli, authToken)
+	handleError(err)
+	printResponse(enterprises)
+}
+
+func UpdateEnterprise() {
+	log.Println(">>> Update enterprise")
+	updateParams := params.UpdateEntityParams{
+		CredentialsName: fmt.Sprintf("%s-clone", credentialsName),
+	}
+	enterprise, err := updateEnterprise(cli, authToken, enterpriseID, updateParams)
+	handleError(err)
+	printResponse(enterprise)
+}
+
+func GetEnterprise() {
+	log.Println(">>> Get enterprise")
+	enterprise, err := getEnterprise(cli, authToken, enterpriseID)
+	handleError(err)
+	printResponse(enterprise)
+}
+
+func CreateEnterprisePool() {
+	pools, err := listEnterprisesPools(cli, authToken, enterpriseID)
+	handleError(err)
+	if len(pools) > 0 {
+		log.Println(">>> Enterprise pool already exists, skipping create")
+		enterprisePoolID = pools[0].ID
+		return
+	}
+	log.Println(">>> Create enterprise pool")
+	poolParams := params.CreatePoolParams{
+		MaxRunners:     2,
+		MinIdleRunners: 0,
+		Flavor:         "garm",
+		Image:          "ubuntu:22.04",
+		OSType:         params.Linux,
+		OSArch:         params.Amd64,
+		ProviderName:   "lxd_local",
+		Tags:           []string{"ubuntu", "simple-runner"},
+		Enabled:        true,
+	}
+	enterprise, err := createEnterprisePool(cli, authToken, enterpriseID, poolParams)
+	handleError(err)
+	printResponse(enterprise)
+	enterprisePoolID = enterprise.ID
+}
+
+func ListEnterprisePools() {
+	log.Println(">>> List enterprise pools")
+	pools, err := listEnterprisesPools(cli, authToken, enterpriseID)
+	handleError(err)
+	printResponse(pools)
+}
+
+func GetEnterprisePool() {
+	log.Println(">>> Get enterprise pool")
+	pool, err := getEnterprisePool(cli, authToken, enterpriseID, enterprisePoolID)
+	handleError(err)
+	printResponse(pool)
+}
+
+func UpdateEnterprisePool() {
+	log.Println(">>> Update enterprise pool")
+	var maxRunners uint = 5
+	var idleRunners uint = 1
+	poolParams := params.UpdatePoolParams{
+		MinIdleRunners: &idleRunners,
+		MaxRunners:     &maxRunners,
+	}
+	pool, err := updateEnterprisePool(cli, authToken, enterpriseID, enterprisePoolID, poolParams)
+	handleError(err)
+	printResponse(pool)
+}
+
+func DisableEnterprisePool() {
+	enabled := false
+	_, err := updateEnterprisePool(cli, authToken, enterpriseID, enterprisePoolID, params.UpdatePoolParams{Enabled: &enabled})
+	handleError(err)
+	log.Printf("enterprise pool %s disabled", enterprisePoolID)
+}
+
+func WaitEnterprisePoolNoInstances() {
+	for {
+		log.Println(">>> Wait until enterprise pool has no instances")
+		pool, err := getEnterprisePool(cli, authToken, enterpriseID, enterprisePoolID)
+		handleError(err)
+		if len(pool.Instances) == 0 {
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
+}
+
+func WaitEnterpriseInstance() {
+	log.Println(">>> Wait until enterprise instance is in running state")
+	for {
+		instances, err := listEnterpriseInstances(cli, authToken, enterpriseID)
+		handleError(err)
+		if len(instances) > 0 {
+			instance := instances[0]
+			log.Printf("instance %s status: %s", instance.Name, instance.Status)
+			if instance.Status == common.InstanceRunning && instance.RunnerStatus == common.RunnerIdle {
+				enterpriseInstanceName = instance.Name
+				break
+			}
+		}
+		time.Sleep(5 * time.Second)
+	}
+}
+
+func ListEnterpriseInstances() {
+	log.Println(">>> List enterprise instances")
+	instances, err := listEnterpriseInstances(cli, authToken, enterpriseID)
+	handleError(err)
+	printResponse(instances)
+}
+
+func DeleteEnterprise() {
+	log.Println(">>> Delete enterprise")
+	err := deleteEnterprise(cli, authToken, enterpriseID)
+	handleError(err)
+	log.Printf("enterprise %s deleted", enterpriseID)
+}
+
+func DeleteEnterprisePool() {
+	log.Println(">>> Delete enterprise pool")
+	err := deleteEnterprisePool(cli, authToken, enterpriseID, enterprisePoolID)
+	handleError(err)
+	log.Printf("enterprise pool %s deleted", enterprisePoolID)
+}
+
 func main() {
 	//////////////////
 	// initialize cli /
@@ -1025,6 +1294,28 @@ func main() {
 	UpdatePool()
 	GetPool()
 	ListPoolInstances()
+
+	///////////////
+	// enterprise /
+	///////////////
+	// CreateEnterprise()
+	// ListEnterprises()
+	// UpdateEnterprise()
+	// GetEnterprise()
+
+	// CreateEnterprisePool()
+	// ListEnterprisePools()
+	// GetEnterprisePool()
+	// UpdateEnterprisePool()
+
+	// WaitEnterpriseInstance()
+	// ListEnterpriseInstances()
+
+	// DisableEnterprisePool()
+	// DeleteInstance(enterpriseInstanceName)
+	// WaitEnterprisePoolNoInstances()
+	// DeleteEnterprisePool()
+	// DeleteEnterprise()
 
 	/////////////
 	// Cleanup //
