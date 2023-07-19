@@ -11,6 +11,8 @@ github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2/go.mod h1:W
 github.com/bwesterb/go-ristretto v1.2.0/go.mod h1:fUIoIZaG73pV5biE2Blr2xEzDoMj7NFEuV9ekS419A0=
 github.com/cloudbase/garm v0.1.1-0.20230717131646-8089244c9c73 h1:8oNqGE5FcLx28hm8esk3MkTZx/HqYVPwFFfDmLyvmx8=
 github.com/cloudbase/garm v0.1.1-0.20230717131646-8089244c9c73/go.mod h1:fhsafjEKHHfspR+K5rFKKiUUYPApsASCFqilCtsYO4Q=
+github.com/cloudbase/garm v0.1.1-0.20230718170336-ddd6976115f1 h1:zv3M0Le4eTzlRcswjbdO+HLr5/L7fGVM1Lzxiw0lZ34=
+github.com/cloudbase/garm v0.1.1-0.20230718170336-ddd6976115f1/go.mod h1:fhsafjEKHHfspR+K5rFKKiUUYPApsASCFqilCtsYO4Q=
 github.com/cloudflare/circl v1.1.0/go.mod h1:prBCrKB9DV4poKZY1l9zBXg2QJY7mvgRvtMxxK7fi4I=
 github.com/cloudflare/circl v1.3.3 h1:fE/Qz0QdIGqeWfnwq0RE0R7MI51s0M2E4Ga9kq5AEMs=
 github.com/cloudflare/circl v1.3.3/go.mod h1:5XYMA4rFBvNIrhs50XuiBJ15vF2pZn4nnUKZrLbUZFA=
