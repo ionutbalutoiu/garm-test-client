@@ -13,6 +13,8 @@ github.com/cloudbase/garm v0.1.1-0.20230717131646-8089244c9c73 h1:8oNqGE5FcLx28h
 github.com/cloudbase/garm v0.1.1-0.20230717131646-8089244c9c73/go.mod h1:fhsafjEKHHfspR+K5rFKKiUUYPApsASCFqilCtsYO4Q=
 github.com/cloudbase/garm v0.1.1-0.20230718170336-ddd6976115f1 h1:zv3M0Le4eTzlRcswjbdO+HLr5/L7fGVM1Lzxiw0lZ34=
 github.com/cloudbase/garm v0.1.1-0.20230718170336-ddd6976115f1/go.mod h1:fhsafjEKHHfspR+K5rFKKiUUYPApsASCFqilCtsYO4Q=
+github.com/cloudbase/garm v0.1.1-0.20230720110206-14586f015411 h1:M5qMzWX4tVTFeQaiqqN414Fyc1zv9+GbsTxgRd8hLA0=
+github.com/cloudbase/garm v0.1.1-0.20230720110206-14586f015411/go.mod h1:fhsafjEKHHfspR+K5rFKKiUUYPApsASCFqilCtsYO4Q=
 github.com/cloudflare/circl v1.1.0/go.mod h1:prBCrKB9DV4poKZY1l9zBXg2QJY7mvgRvtMxxK7fi4I=
 github.com/cloudflare/circl v1.3.3 h1:fE/Qz0QdIGqeWfnwq0RE0R7MI51s0M2E4Ga9kq5AEMs=
 github.com/cloudflare/circl v1.3.3/go.mod h1:5XYMA4rFBvNIrhs50XuiBJ15vF2pZn4nnUKZrLbUZFA=
