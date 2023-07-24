@@ -3,7 +3,8 @@ module garm-test-client
 go 1.20
 
 require (
-	github.com/cloudbase/garm v0.1.1-0.20230720110206-14586f015411
+	github.com/cloudbase/garm v0.1.1-0.20230724124449-851a9bd0ae58
+	github.com/cloudbase/garm-provider-common v0.0.0-20230724114054-7aa0a3dfbce0
 	github.com/go-openapi/runtime v0.26.0
 )
 

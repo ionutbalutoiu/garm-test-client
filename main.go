@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	commonParams "github.com/cloudbase/garm-provider-common/params"
 	client "github.com/cloudbase/garm/client"
 	clientCredentials "github.com/cloudbase/garm/client/credentials"
 	clientEnterprises "github.com/cloudbase/garm/client/enterprises"
@@ -22,7 +23,6 @@ import (
 	clientRepositories "github.com/cloudbase/garm/client/repositories"
 	"github.com/cloudbase/garm/cmd/garm-cli/config"
 	"github.com/cloudbase/garm/params"
-	"github.com/cloudbase/garm/runner/providers/common"
 	"github.com/go-openapi/runtime"
 	openapiRuntimeClient "github.com/go-openapi/runtime/client"
 )
@@ -695,8 +695,8 @@ func CreateRepoPool() {
 		MinIdleRunners: 0,
 		Flavor:         "garm",
 		Image:          "ubuntu:22.04",
-		OSType:         params.Linux,
-		OSArch:         params.Amd64,
+		OSType:         commonParams.Linux,
+		OSArch:         commonParams.Amd64,
 		ProviderName:   "lxd_local",
 		Tags:           []string{"ubuntu", "simple-runner"},
 		Enabled:        true,
@@ -761,7 +761,7 @@ func WaitRepoInstance() {
 		if len(instances) > 0 {
 			instance := instances[0]
 			log.Printf("instance %s status: %s", instance.Name, instance.Status)
-			if instance.Status == common.InstanceRunning && instance.RunnerStatus == common.RunnerIdle {
+			if instance.Status == commonParams.InstanceRunning && instance.RunnerStatus == params.RunnerIdle {
 				repoInstanceName = instance.Name
 				break
 			}
@@ -852,8 +852,8 @@ func CreateOrgPool() {
 		MinIdleRunners: 0,
 		Flavor:         "garm",
 		Image:          "ubuntu:22.04",
-		OSType:         params.Linux,
-		OSArch:         params.Amd64,
+		OSType:         commonParams.Linux,
+		OSArch:         commonParams.Amd64,
 		ProviderName:   "lxd_local",
 		Tags:           []string{"ubuntu", "simple-runner"},
 		Enabled:        true,
@@ -918,7 +918,7 @@ func WaitOrgInstance() {
 		if len(instances) > 0 {
 			instance := instances[0]
 			log.Printf("instance %s status: %s", instance.Name, instance.Status)
-			if instance.Status == common.InstanceRunning && instance.RunnerStatus == common.RunnerIdle {
+			if instance.Status == commonParams.InstanceRunning && instance.RunnerStatus == params.RunnerIdle {
 				orgInstanceName = instance.Name
 				break
 			}
@@ -1002,8 +1002,8 @@ func CreatePool() {
 		MinIdleRunners: 0,
 		Flavor:         "garm",
 		Image:          "ubuntu:20.04",
-		OSType:         params.Linux,
-		OSArch:         params.Amd64,
+		OSType:         commonParams.Linux,
+		OSArch:         commonParams.Amd64,
 		ProviderName:   "lxd_local",
 		Tags:           []string{"ubuntu", "simple-runner"},
 		Enabled:        true,
@@ -1116,8 +1116,8 @@ func CreateEnterprisePool() {
 		MinIdleRunners: 0,
 		Flavor:         "garm",
 		Image:          "ubuntu:22.04",
-		OSType:         params.Linux,
-		OSArch:         params.Amd64,
+		OSType:         commonParams.Linux,
+		OSArch:         commonParams.Amd64,
 		ProviderName:   "lxd_local",
 		Tags:           []string{"ubuntu", "simple-runner"},
 		Enabled:        true,
@@ -1182,7 +1182,7 @@ func WaitEnterpriseInstance() {
 		if len(instances) > 0 {
 			instance := instances[0]
 			log.Printf("instance %s status: %s", instance.Name, instance.Status)
-			if instance.Status == common.InstanceRunning && instance.RunnerStatus == common.RunnerIdle {
+			if instance.Status == commonParams.InstanceRunning && instance.RunnerStatus == params.RunnerIdle {
 				enterpriseInstanceName = instance.Name
 				break
 			}
